@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "638768875055",
+    "project_id": "voicemate-25ade",
+    "storage_bucket": "voicemate-25ade.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:638768875055:android:f222a301233c00c68b28da",
+        "android_client_info": {
+          "package_name": "dev.hayo.voice_mate"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhdFTkDtaWbKaW6PKnRmpDSIM08MTOzak"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
