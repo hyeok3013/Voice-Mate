@@ -1,0 +1,7 @@
+flutter_native_splash:
+  background_image: assets/images/voicemate_splash.jpg # 배경 이미지를 전체 화면에 꽉 차게 표시
+  ios: true # iOS 스플래시 화면 활성화
+  android: true # Android 스플래시 화면 활성화
+  android_12:
+    image: assets/images/voicemate_splash.jpg # Android 12+에서 사용할 아이콘 이미지
+    icon_background_color: "#ffffff" # 아이콘 배경색
