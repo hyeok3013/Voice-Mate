@@ -21,7 +21,9 @@ class RecordingView extends StatelessWidget {
         ),
         child: SafeArea(
           child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: 24.w),
+            padding: EdgeInsets.symmetric(
+              horizontal: 24.w,
+            ),
             child: Column(
               children: [
                 SizedBox(height: 40.h),
@@ -77,7 +79,7 @@ class RecordingView extends StatelessWidget {
                           _buildActionButton(Icons.mic_off, '음소거'),
                         ],
                       ),
-                      SizedBox(height: 32.h),
+                      SizedBox(height: 40.h),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
@@ -103,8 +105,8 @@ class RecordingView extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 70.w,
-          height: 70.w,
+          width: 78.w,
+          height: 78.w,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.white.withOpacity(0.2),
@@ -115,7 +117,7 @@ class RecordingView extends StatelessWidget {
             size: 36.w,
           ),
         ),
-        SizedBox(height: 8.h),
+        SizedBox(height: 5.h),
         Text(
           label,
           style: TextStyle(
@@ -131,8 +133,8 @@ class RecordingView extends StatelessWidget {
     return Column(
       children: [
         Container(
-          width: 70.w,
-          height: 70.w,
+          width: 78.w,
+          height: 78.w,
           decoration: const BoxDecoration(
             shape: BoxShape.circle,
             color: Colors.red,
@@ -143,7 +145,7 @@ class RecordingView extends StatelessWidget {
             size: 36.w,
           ),
         ),
-        SizedBox(height: 8.h),
+        SizedBox(height: 5.h),
         Text(
           '녹음',
           style: TextStyle(
