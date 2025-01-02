@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_native_splash/flutter_native_splash.dart';
@@ -14,13 +15,15 @@ void main() async {
     options: DefaultFirebaseOptions.currentPlatform,
   );
 
-  final authProvider = AuthProvider();
-  await authProvider.signInAnonymously();
+  final authService = AuthService();
+  if (FirebaseAuth.instance.currentUser == null) {
+    await authService.signInAnonymously();
+  }
 
   runApp(MultiProvider(
     providers: [
       ChangeNotifierProvider.value(
-        value: authProvider,
+        value: authService,
       ),
     ],
     child: const MyApp(),
