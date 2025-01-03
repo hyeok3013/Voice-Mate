@@ -1,15 +1,33 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:provider/provider.dart';
 import 'package:voice_mate/firebase_options.dart';
+import 'package:voice_mate/src/service/auth_service.dart';
 import 'package:voice_mate/src/util/router/route_path.dart';
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
+  WidgetsBinding widgetsBinding = WidgetsFlutterBinding.ensureInitialized();
+  FlutterNativeSplash.preserve(widgetsBinding: widgetsBinding);
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  runApp(const MyApp());
+
+  final authService = AuthService();
+  if (FirebaseAuth.instance.currentUser == null) {
+    await authService.signInAnonymously();
+  }
+
+  runApp(MultiProvider(
+    providers: [
+      ChangeNotifierProvider.value(
+        value: authService,
+      ),
+    ],
+    child: const MyApp(),
+  ));
 }
 
 class MyApp extends StatelessWidget {
@@ -18,6 +36,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    FlutterNativeSplash.remove();
     return ScreenUtilInit(
       designSize: const Size(390, 844),
       builder: (context, child) {

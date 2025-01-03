@@ -1,102 +1,211 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:voice_mate/src/view/base_view.dart';
+import 'package:voice_mate/src/view/recording/recording_view_model.dart';
 
-class RecordingView extends StatelessWidget {
+class RecordingView extends StatefulWidget {
   const RecordingView({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // backgroundColor: Colors.black.withOpacity(0.95),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF2C1E40), // 어두운 보라
-              Color(0xFF1C1C1E), // 거의 검정
-            ],
+  State<RecordingView> createState() => _RecordingViewState();
+}
+
+class _RecordingViewState extends State<RecordingView> {
+  late RecordingViewModel _viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewModel = RecordingViewModel();
+    _initializeRecorder();
+  }
+
+  Future<void> _initializeRecorder() async {
+    try {
+      await _viewModel.initRecorder();
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            duration: const Duration(seconds: 3),
           ),
-        ),
-        child: SafeArea(
-          child: Padding(
-            padding: EdgeInsets.symmetric(
-              horizontal: 24.w,
+        );
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _viewModel.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return BaseView<RecordingViewModel>(
+      viewModel: _viewModel,
+      builder: (context, viewModel) {
+        return Scaffold(
+          body: Container(
+            decoration: const BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Color(0xFF2C1E40),
+                  Color(0xFF1C1C1E),
+                ],
+              ),
             ),
-            child: Column(
-              children: [
-                SizedBox(height: 40.h),
-                // 상단 상태 영역
-                Column(
+            child: SafeArea(
+              child: Padding(
+                padding: EdgeInsets.symmetric(horizontal: 24.w),
+                child: Column(
                   children: [
-                    Text(
-                      '녹음 준비중...',
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.7),
-                        fontSize: 20.sp,
-                      ),
+                    SizedBox(height: 40.h),
+                    // 상단 상태 영역
+                    Column(
+                      children: [
+                        Text(
+                          viewModel.isRecording ? '녹음중...' : '녹음 준비중...',
+                          style: TextStyle(
+                            color: Colors.white.withOpacity(0.7),
+                            fontSize: 20.sp,
+                          ),
+                        ),
+                        SizedBox(height: 4.h),
+                        Text(
+                          '춤추는바람-7942',
+                          style: TextStyle(
+                            color: Colors.white,
+                            fontSize: 24.sp,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
                     ),
-                    SizedBox(height: 4.h),
-                    Text(
-                      '춤추는바람-7942',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 24.sp,
-                        fontWeight: FontWeight.w600,
+                    Expanded(child: Container()),
+                    // 하단 버튼 영역
+                    Padding(
+                      padding: EdgeInsets.only(bottom: 20.h),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildPlayButton(viewModel),
+                              SizedBox(width: 10.w),
+                              _buildActionButton(Icons.tune, '필터'),
+                              SizedBox(width: 10.w),
+                              _buildActionButton(Icons.mic_off, '음소거'),
+                            ],
+                          ),
+                          SizedBox(height: 40.h),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              _buildActionButton(Icons.close, '취소'),
+                              SizedBox(width: 10.w),
+                              _buildRecordButton(viewModel),
+                              SizedBox(width: 10.w),
+                              _buildActionButton(Icons.send, '전송'),
+                            ],
+                          ),
+                        ],
                       ),
                     ),
                   ],
                 ),
-
-                // 중앙 타이머 영역
-                Expanded(
-                  child: Center(
-                    child: Text(
-                      '',
-                      style: TextStyle(
-                        color: Colors.black,
-                        fontSize: 48.sp,
-                        fontWeight: FontWeight.w300,
-                        letterSpacing: 2,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // 하단 버튼 영역
-                Padding(
-                  padding: EdgeInsets.only(bottom: 20.h),
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildActionButton(Icons.play_arrow, '재생'),
-                          SizedBox(width: 10.w),
-                          _buildActionButton(Icons.tune, '필터'),
-                          SizedBox(width: 10.w),
-                          _buildActionButton(Icons.mic_off, '음소거'),
-                        ],
-                      ),
-                      SizedBox(height: 40.h),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          _buildActionButton(Icons.close, '취소'),
-                          SizedBox(width: 10.w),
-                          _buildRecordButton(),
-                          SizedBox(width: 10.w),
-                          _buildActionButton(Icons.send, '전송'),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+              ),
             ),
           ),
-        ),
+        );
+      },
+    );
+  }
+
+  Widget _buildRecordButton(RecordingViewModel viewModel) {
+    return GestureDetector(
+      onTap: () async {
+        if (viewModel.isRecording) {
+          await viewModel.stopRecording();
+        } else {
+          await viewModel.startRecording();
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 78.w,
+            height: 78.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: viewModel.isRecording ? Colors.white : Colors.red,
+            ),
+            child: Icon(
+              viewModel.isRecording ? Icons.stop : Icons.mic,
+              color: viewModel.isRecording ? Colors.red : Colors.white,
+              size: 36.w,
+            ),
+          ),
+          SizedBox(height: 5.h),
+          Text(
+            viewModel.isRecording ? '중지' : '녹음',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 13.sp,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPlayButton(RecordingViewModel viewModel) {
+    return GestureDetector(
+      onTap: () async {
+        try {
+          await viewModel.playRecording();
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString()),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
+        }
+      },
+      child: Column(
+        children: [
+          Container(
+            width: 78.w,
+            height: 78.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: viewModel.isPlaying
+                  ? Colors.white.withOpacity(0.4) // 재생 중일 때 더 밝은 배경
+                  : Colors.white.withOpacity(0.2),
+            ),
+            child: Icon(
+              // 재생 상태에 따라 아이콘 변경
+              viewModel.isPlaying ? Icons.pause : Icons.play_arrow,
+              color: Colors.white,
+              size: 36.w,
+            ),
+          ),
+          SizedBox(height: 5.h),
+          Text(
+            // 상태에 따라 텍스트 변경
+            viewModel.isPlaying ? '일시정지' : '재생',
+            style: TextStyle(
+              color: Colors.white.withOpacity(0.8),
+              fontSize: 13.sp,
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -120,34 +229,6 @@ class RecordingView extends StatelessWidget {
         SizedBox(height: 5.h),
         Text(
           label,
-          style: TextStyle(
-            color: Colors.white.withOpacity(0.8),
-            fontSize: 13.sp,
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRecordButton() {
-    return Column(
-      children: [
-        Container(
-          width: 78.w,
-          height: 78.w,
-          decoration: const BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.red,
-          ),
-          child: Icon(
-            Icons.mic,
-            color: Colors.white,
-            size: 36.w,
-          ),
-        ),
-        SizedBox(height: 5.h),
-        Text(
-          '녹음',
           style: TextStyle(
             color: Colors.white.withOpacity(0.8),
             fontSize: 13.sp,
