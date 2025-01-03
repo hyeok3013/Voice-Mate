@@ -1,6 +1,7 @@
 import 'package:flutter_sound/flutter_sound.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:voice_mate/src/view/base_view_model.dart';
+import 'dart:io' show Platform;
 
 class RecordingViewModel extends BaseViewModel {
   final FlutterSoundRecorder _recorder = FlutterSoundRecorder();
@@ -16,20 +17,24 @@ class RecordingViewModel extends BaseViewModel {
 
   Future<void> initializeRecorder() async {
     try {
-      // 여러 권한 동시 요청
-      Map<Permission, PermissionStatus> statuses = await [
-        Permission.microphone,
-        Permission.storage,
-      ].request();
+      if (Platform.isIOS) {
+        final microphoneStatus = await Permission.microphone.request();
+        if (microphoneStatus != PermissionStatus.granted) {
+          throw RecordingPermissionException('마이크 권한이 필요합니다.');
+        }
+      } else {
+        // Android
+        Map<Permission, PermissionStatus> statuses = await [
+          Permission.microphone,
+          Permission.storage,
+        ].request();
 
-      // 마이크 권한 확인
-      if (statuses[Permission.microphone] != PermissionStatus.granted) {
-        throw RecordingPermissionException('마이크 권한이 필요합니다.');
-      }
-
-      // 저장소 권한 확인 (Android용)
-      if (statuses[Permission.storage] != PermissionStatus.granted) {
-        throw RecordingPermissionException('저장소 권한이 필요합니다.');
+        if (statuses[Permission.microphone] != PermissionStatus.granted) {
+          throw RecordingPermissionException('마이크 권한이 필요합니다.');
+        }
+        if (statuses[Permission.storage] != PermissionStatus.granted) {
+          throw RecordingPermissionException('저장소 권한이 필요합니다.');
+        }
       }
 
       await _recorder.openRecorder();
