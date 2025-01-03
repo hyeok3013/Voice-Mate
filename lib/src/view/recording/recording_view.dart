@@ -22,7 +22,7 @@ class _RecordingViewState extends State<RecordingView> {
 
   Future<void> _initializeRecorder() async {
     try {
-      await _viewModel.initializeRecorder();
+      await _viewModel.initRecorder();
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -165,10 +165,17 @@ class _RecordingViewState extends State<RecordingView> {
   Widget _buildPlayButton(RecordingViewModel viewModel) {
     return GestureDetector(
       onTap: () async {
-        if (viewModel.isPlaying) {
-          await viewModel.stopPlaying();
-        } else {
+        try {
           await viewModel.playRecording();
+        } catch (e) {
+          if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(e.toString()),
+                duration: const Duration(seconds: 3),
+              ),
+            );
+          }
         }
       },
       child: Column(
@@ -178,17 +185,21 @@ class _RecordingViewState extends State<RecordingView> {
             height: 78.w,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: Colors.white.withOpacity(0.2),
+              color: viewModel.isPlaying
+                  ? Colors.white.withOpacity(0.4) // 재생 중일 때 더 밝은 배경
+                  : Colors.white.withOpacity(0.2),
             ),
             child: Icon(
-              viewModel.isPlaying ? Icons.stop : Icons.play_arrow,
+              // 재생 상태에 따라 아이콘 변경
+              viewModel.isPlaying ? Icons.pause : Icons.play_arrow,
               color: Colors.white,
               size: 36.w,
             ),
           ),
           SizedBox(height: 5.h),
           Text(
-            viewModel.isPlaying ? '중지' : '재생',
+            // 상태에 따라 텍스트 변경
+            viewModel.isPlaying ? '일시정지' : '재생',
             style: TextStyle(
               color: Colors.white.withOpacity(0.8),
               fontSize: 13.sp,
