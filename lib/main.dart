@@ -5,6 +5,7 @@ import 'package:flutter_native_splash/flutter_native_splash.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:voice_mate/firebase_options.dart';
+import 'package:voice_mate/src/repository/recording_repository.dart';
 import 'package:voice_mate/src/service/auth_service.dart';
 import 'package:voice_mate/src/util/router/route_path.dart';
 
@@ -25,6 +26,7 @@ void main() async {
       ChangeNotifierProvider.value(
         value: authService,
       ),
+      Provider(create: (context) => RecordingRepository()),
     ],
     child: const MyApp(),
   ));

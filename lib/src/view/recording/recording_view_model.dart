@@ -4,18 +4,61 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:record/record.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:voice_mate/src/view/base_view_model.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:voice_mate/src/repository/recording_repository.dart';
 
 class RecordingViewModel extends BaseViewModel {
-  final AudioRecorder _recorder = AudioRecorder();
-  final AudioPlayer _player = AudioPlayer();
+  RecordingViewModel({
+    required RecordingRepository repository,
+    AudioRecorder? recorder,
+    AudioPlayer? player,
+  })  : _repository = repository,
+        _recorder = recorder ?? AudioRecorder(),
+        _player = player ?? AudioPlayer();
+
+  final RecordingRepository _repository;
+  final AudioRecorder _recorder;
+  final AudioPlayer _player;
 
   String _recordedFilePath = '';
   bool _isRecording = false;
   bool _isPlaying = false;
   bool _isRecorderInitialized = false;
+  bool _isReplyMode = false;
+  String? _originalRecordingId;
+  String _targetNickname = '모두에게';
 
   bool get isRecording => _isRecording;
   bool get isPlaying => _isPlaying;
+  bool get isReplyMode => _isReplyMode;
+  String get targetNickname => _targetNickname;
+
+  void setReplyMode(String originalRecordingId, String targetNickname) {
+    _isReplyMode = true;
+    _originalRecordingId = originalRecordingId;
+    _targetNickname = targetNickname;
+    notifyListeners();
+  }
+
+  Future<void> uploadRecording() async {
+    if (_recordedFilePath.isEmpty) return;
+
+    try {
+      final userId = FirebaseAuth.instance.currentUser?.uid;
+      if (userId == null) throw Exception('사용자가 로그인되어 있지 않습니다.');
+
+      if (_isReplyMode && _originalRecordingId != null) {
+        final url =
+            await _repository.uploadRecording(_recordedFilePath, userId);
+        await _repository.addReply(_originalRecordingId!, url);
+      } else {
+        await _repository.uploadRecording(_recordedFilePath, userId);
+      }
+    } catch (e) {
+      print('업로드 실패: $e');
+      rethrow;
+    }
+  }
 
   Future<void> initRecorder() async {
     try {
@@ -130,6 +173,13 @@ class RecordingViewModel extends BaseViewModel {
       print('일시정지 실패: $e');
       rethrow;
     }
+  }
+
+  void resetTarget() {
+    _isReplyMode = false;
+    _originalRecordingId = null;
+    _targetNickname = '모두에게';
+    notifyListeners();
   }
 
   @override
