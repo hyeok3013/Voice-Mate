@@ -1,22 +1,43 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_screenutil/flutter_screenutil.dart';
+import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+import 'package:voice_mate/src/repository/recording_repository.dart';
+import 'package:voice_mate/src/util/router/route_names.dart';
 import 'package:voice_mate/src/view/base_view.dart';
 import 'package:voice_mate/src/view/recording/recording_view_model.dart';
 
 class RecordingView extends StatefulWidget {
-  const RecordingView({super.key});
+  final String? originalRecordingId;
+  final String? targetNickname;
+
+  const RecordingView({
+    super.key,
+    this.originalRecordingId,
+    this.targetNickname,
+  });
 
   @override
   State<RecordingView> createState() => _RecordingViewState();
 }
 
 class _RecordingViewState extends State<RecordingView> {
-  late RecordingViewModel _viewModel;
+  late final RecordingViewModel _viewModel;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = RecordingViewModel();
+    _viewModel = RecordingViewModel(
+      repository: context.read<RecordingRepository>(),
+    );
+
+    if (widget.originalRecordingId != null) {
+      _viewModel.setReplyMode(
+        widget.originalRecordingId!,
+        widget.targetNickname!,
+      );
+    }
+
     _initializeRecorder();
   }
 
@@ -35,11 +56,11 @@ class _RecordingViewState extends State<RecordingView> {
     }
   }
 
-  @override
-  void dispose() {
-    _viewModel.dispose();
-    super.dispose();
-  }
+  // @override
+  // void dispose() {
+  //   _viewModel.dispose();
+  //   super.dispose();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -76,7 +97,7 @@ class _RecordingViewState extends State<RecordingView> {
                         ),
                         SizedBox(height: 4.h),
                         Text(
-                          '춤추는바람-7942',
+                          viewModel.targetNickname,
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 24.sp,
@@ -96,20 +117,26 @@ class _RecordingViewState extends State<RecordingView> {
                             children: [
                               _buildPlayButton(viewModel),
                               SizedBox(width: 10.w),
-                              _buildActionButton(Icons.tune, '필터'),
+                              _buildActionButton(Icons.tune, '필터', () {}),
                               SizedBox(width: 10.w),
-                              _buildActionButton(Icons.mic_off, '음소거'),
+                              _buildActionButton(Icons.list, '목록', () {
+                                context.goNamed(RouteNames.sharedRecordings);
+                              }),
                             ],
                           ),
                           SizedBox(height: 40.h),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                             children: [
-                              _buildActionButton(Icons.close, '취소'),
+                              _buildActionButton(Icons.close, '취소', () {
+                                viewModel.resetTarget();
+                              }),
                               SizedBox(width: 10.w),
                               _buildRecordButton(viewModel),
                               SizedBox(width: 10.w),
-                              _buildActionButton(Icons.send, '전송'),
+                              _buildActionButton(Icons.send, '전송', () {
+                                viewModel.uploadRecording();
+                              }),
                             ],
                           ),
                         ],
@@ -210,20 +237,23 @@ class _RecordingViewState extends State<RecordingView> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label) {
+  Widget _buildActionButton(IconData icon, String label, VoidCallback onTap) {
     return Column(
       children: [
-        Container(
-          width: 78.w,
-          height: 78.w,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: Colors.white.withOpacity(0.2),
-          ),
-          child: Icon(
-            icon,
-            color: Colors.white,
-            size: 36.w,
+        GestureDetector(
+          onTap: onTap,
+          child: Container(
+            width: 78.w,
+            height: 78.w,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: Colors.white.withOpacity(0.2),
+            ),
+            child: Icon(
+              icon,
+              color: Colors.white,
+              size: 36.w,
+            ),
           ),
         ),
         SizedBox(height: 5.h),
